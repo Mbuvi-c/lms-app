@@ -27,7 +27,6 @@ A comprehensive full-stack Learning Management System built with modern web tech
 
 - Node.js
 - Express
-- Sequelize ORM
 - MySQL Database
 - JSON Web Tokens (JWT)
 
@@ -45,26 +44,17 @@ A comprehensive full-stack Learning Management System built with modern web tech
 
 2. Navigate to the project directory:
 
-   ```bash
-   cd Graduation-Project
-   ```
-
 3. Install the dependencies:
 
    ```bash
    npm install
    ```
 
-   or if you prefer using yarn:
-
-   ```bash
-   yarn install
-   ```
 
 4. Set up the environment variables:
 
    - Create a `.env` file in the root directory.
-   - Add the necessary environment variables as specified in `.env.example`.
+   - Add the necessary environment variables as specified in `.env.sample`.
 
 5. Run the development server:
 
@@ -72,13 +62,9 @@ A comprehensive full-stack Learning Management System built with modern web tech
    npm run dev
    ```
 
-   or with yarn:
-
-   ```bash
-   yarn dev
-   ```
-
 6. Open your browser and visit `http://localhost:3000` to view the application.
+
+
 
 ### Database Setup
 
@@ -88,47 +74,8 @@ A comprehensive full-stack Learning Management System built with modern web tech
 
 3. Update the database configuration in the `.env` file with your database credentials.
 
-4. Run the database migrations:
+7. Run initial migration with plus seed:
+```
+   npm run db-setup
+```
 
-   ```bash
-   npm run migrate
-   ```
-
-   or with yarn:
-
-   ```bash
-   yarn migrate
-   ```
-
-5. (Optional) Seed the database with initial data:
-   ```bash
-   npm run seed
-   ```
-   or with yarn:
-   ```bash
-   yarn seed
-   ```
-
-### Building for Production
-
-1. Build the application:
-
-   ```bash
-   npm run build
-   ```
-
-   or with yarn:
-
-   ```bash
-   yarn build
-   ```
-
-2. Start the production server:
-   ```bash
-   npm start
-   ```
-   or with yarn:
-   ```bash
-   yarn start
-   ```
-  ```
