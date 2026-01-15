@@ -34,35 +34,60 @@ A comprehensive full-stack Learning Management System built with modern web tech
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v20 or higher)
 - MySQL
 - npm or yarn
 
+### Frontend
+
 ### Installation
 
-1. Clone the repository
+1. Navigate to the project directory:
+```
+   cd server
+```   
+2. Install the dependencies:
 
-2. Navigate to the project directory:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
 
-3. Install the dependencies:
+   ```bash
+   npm run dev
+   ```
+4. Open your browser and visit `http://localhost:5173` to view the application.
+
+
+
+### Server
+
+### Installation
+
+1. Navigate to the project directory:
+```
+   cd server
+```   
+
+2. Install the dependencies:
 
    ```bash
    npm install
    ```
 
 
-4. Set up the environment variables:
+3. Set up the environment variables:
 
    - Create a `.env` file in the root directory.
    - Add the necessary environment variables as specified in `.env.sample`.
 
-5. Run the development server:
+4. Run the development server:
 
    ```bash
    npm run dev
    ```
 
-6. Open your browser and visit `http://localhost:3000` to view the application.
+5. Open your browser and visit `http://localhost:3000` to view the application.
 
 
 
@@ -74,8 +99,34 @@ A comprehensive full-stack Learning Management System built with modern web tech
 
 3. Update the database configuration in the `.env` file with your database credentials.
 
-7. Run initial migration with plus seed:
+4. Run initial migration with plus seed:
 ```
    npm run db-setup
+```
+
+
+### PM2
+1. Open terminal and install globally
+```   
+   npm install -g pm2
+```
+2. How to run it
+```
+   pm2 monitor
+```
+3. Follow instructions from their website
+or 
+Navigate to server directory in separate terminal
+```
+   cd server
+```
+
+```   
+   pm2 start server.js --name "lms"
+```
+How to check status
+
+```
+   pm2 list
 ```
 

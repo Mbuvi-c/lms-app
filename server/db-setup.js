@@ -140,7 +140,7 @@ async function setupDatabase() {
 
     // Seed Kenyan Users
     const users = [
-      ['admin@uonbi.ac.ke', defaultPassword, 'admin', 'active', 'Otieno', 'Manyora', 'Otieno Manyora'],
+      ['admin@jkuat.ac.ke', defaultPassword, 'admin', 'active', 'Otieno', 'Manyora', 'Otieno Manyora'],
       ['registrar@strathmore.edu', defaultPassword, 'admin', 'active', 'Catherine', 'Mutua', 'Catherine Mutua'],
       ['dr.mwenesi@ku.ac.ke', defaultPassword, 'instructor', 'active', 'Faith', 'Mwenesi', 'Dr. Faith Mwenesi'],
       ['prof.kamau@jkuat.ac.ke', defaultPassword, 'instructor', 'active', 'David', 'Kamau', 'Prof. David Kamau'],
@@ -169,7 +169,7 @@ async function setupDatabase() {
     }
 
     console.log("✅ Database setup and Kenyan seed completed successfully");
-    console.log(`Admin login: admin@uonbi.ac.ke / ${process.env.ADMIN_PASSWORD || "Admin@2026"}`);
+    console.log(`Admin login: admin@jkuat.ac.ke / ${process.env.ADMIN_PASSWORD || "Admin@2026"}`);
 
   } catch (err) {
     console.error("❌ Database setup failed:", err);

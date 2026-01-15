@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import fs from  "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import routes from "./src/routes/index.js";
@@ -14,6 +15,8 @@ import TokenBlacklist from "./src/models/TokenBlacklist.js";
 // Initialize environment
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
+
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
 // Create Express app
 const app = express();
@@ -30,7 +33,7 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
+app.use(morgan('combined', { stream: accessLogStream }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ======================

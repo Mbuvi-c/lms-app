@@ -13,7 +13,7 @@ export const PostService = {
     // Append allow_submissions as a string "true" or "false"
     formData.append('allow_submissions', data.allow_submissions ? 'true' : 'false');
 
-    const response = await api.post<Post>('/posts', formData, {
+    const response = await api.post<Post>('/api/posts', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -27,42 +27,42 @@ export const PostService = {
   },
 
   getCoursePosts: async (courseId: string): Promise<Post[]> => {
-    const response = await api.get<Post[]>(`/posts/course/${courseId}`);
+    const response = await api.get<Post[]>(`/api/posts/course/${courseId}`);
     return response.data;
   },
   
   // Add method for instructor course posts - this uses the same endpoint as getCoursePosts
   // since backend doesn't have a separate endpoint but permissions are handled server-side
   getInstructorCoursePosts: async (courseId: string): Promise<Post[]> => {
-    const response = await api.get<Post[]>(`/posts/course/${courseId}`);
+    const response = await api.get<Post[]>(`/api/posts/course/${courseId}`);
     return response.data;
   },
 
   getPostById: async (postId: string): Promise<Post> => {
-    const response = await api.get<Post>(`/posts/${postId}`);
+    const response = await api.get<Post>(`/api/posts/${postId}`);
     return response.data;
   },
   
   submitAssignment: async (postId: string, formData: FormData): Promise<any> => {
-    const response = await api.post(`/posts/${postId}/submissions`, formData, {
+    const response = await api.post(`/api/posts/${postId}/submissions`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
     
     // Clear cache for submissions after new submission
-    api.clearCacheFor(`/posts/${postId}/submissions/my`);
+    api.clearCacheFor(`/api/posts/${postId}/submissions/my`);
     
     return response.data;
   },
   
   getSubmissions: async (postId: string): Promise<any[]> => {
-    const response = await api.get(`/posts/${postId}/submissions`);
+    const response = await api.get(`/api/posts/${postId}/submissions`);
     return response.data;
   },
   
   getMySubmissions: async (postId: string): Promise<any[]> => {
-    const response = await api.get(`/posts/${postId}/submissions/my`);
+    const response = await api.get(`/api/posts/${postId}/submissions/my`);
     return response.data;
   },
   

@@ -123,7 +123,7 @@ export const CourseService = {
 
   deleteCourse: async (courseId: string): Promise<boolean> => {
     try {
-      await api.delete(`/courses/${courseId}`);
+      await api.delete(`/api/courses/${courseId}`);
       return true;
     } catch (error: any) {
       console.error(`Error deleting course ${courseId}:`, error.response?.data || error.message);
