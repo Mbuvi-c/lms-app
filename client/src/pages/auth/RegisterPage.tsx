@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Sun, Moon, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import FormField, { SelectField } from '../../components/ui/FormField';
 import Button from '../../components/ui/Button';
 
@@ -31,21 +32,35 @@ const roleOptions = [
 
 const RegisterPage: React.FC = () => {
   const { register, isAuthenticated, isLoading } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const [showPassword, setShowPassword] = useState(false);
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative`}>
+      {/* Dark mode toggle button */}
+      <div className="absolute top-4 right-4">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-700'} shadow-md hover:shadow-lg transition-all duration-200`}
+          aria-label="Toggle dark mode"
+        >
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <BookOpen className="h-12 w-12 text-blue-600" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className={`mt-6 text-center text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           Create a new account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className={`mt-2 text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
           Or{' '}
           <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
             sign in to your existing account
@@ -54,7 +69,7 @@ const RegisterPage: React.FC = () => {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} py-8 px-4 shadow sm:rounded-lg sm:px-10`}>
           <Formik
             initialValues={{
               name: '',
@@ -81,6 +96,7 @@ const RegisterPage: React.FC = () => {
                   type="text"
                   autoComplete="name"
                   required
+                  isDarkMode={isDarkMode}
                 />
 
                 <FormField
@@ -89,21 +105,35 @@ const RegisterPage: React.FC = () => {
                   type="email"
                   autoComplete="email"
                   required
+                  isDarkMode={isDarkMode}
                 />
 
-                <FormField
-                  label="Password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                />
+                {/* Password field with toggle */}
+                <div className="relative">
+                  <FormField
+                    label="Password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    isDarkMode={isDarkMode}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={`absolute right-3 top-[38px] ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'} focus:outline-none`}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
 
                 <SelectField
                   label="Role"
                   name="role"
                   options={roleOptions}
                   required
+                  isDarkMode={isDarkMode}
                 />
 
                 <div>
@@ -112,6 +142,7 @@ const RegisterPage: React.FC = () => {
                     isLoading={isSubmitting || isLoading}
                     disabled={isSubmitting || isLoading}
                     fullWidth
+                    variant={isDarkMode ? 'dark' : 'primary'}
                   >
                     Register
                   </Button>

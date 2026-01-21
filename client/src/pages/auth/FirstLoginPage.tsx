@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { KeySquare, Sun, Moon } from 'lucide-react';
+import { KeySquare, Sun, Moon, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import FormField from '../../components/ui/FormField';
@@ -24,10 +24,12 @@ const PasswordChangeSchema = Yup.object().shape({
 });
 
 const FirstLoginPage: React.FC = () => {
-  const { user, refreshUser, isAuthenticated, isLoading, updateFirstLoginStatus } = useAuth();
+  const { user, isAuthenticated, isLoading, updateFirstLoginStatus } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     console.log('FirstLoginPage rendered with:', { 
@@ -175,23 +177,45 @@ const FirstLoginPage: React.FC = () => {
           >
             {({ isSubmitting }) => (
               <Form className="space-y-6">
-                <FormField
-                  label="New Password"
-                  name="newPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  isDarkMode={isDarkMode}
-                />
+                {/* New Password Field with Toggle */}
+                <div className="relative">
+                  <FormField
+                    label="New Password"
+                    name="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    isDarkMode={isDarkMode}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className={`absolute right-3 top-[38px] ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'} focus:outline-none`}
+                    aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  >
+                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
 
-                <FormField
-                  label="Confirm Password"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  isDarkMode={isDarkMode}
-                />
+                {/* Confirm Password Field with Toggle */}
+                <div className="relative">
+                  <FormField
+                    label="Confirm Password"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    isDarkMode={isDarkMode}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className={`absolute right-3 top-[38px] ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'} focus:outline-none`}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
 
                 <div>
                   <Button
@@ -213,4 +237,4 @@ const FirstLoginPage: React.FC = () => {
   );
 };
 
-export default FirstLoginPage; 
+export default FirstLoginPage;
