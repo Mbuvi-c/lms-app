@@ -59,6 +59,34 @@ app.get("/health", (req, res) => {
   res.json(healthData);
 });
 
+// Temporary database setup route (remove after tables created)
+app.get("/setup-db", async (req, res) => {
+  try {
+    console.log("Running database setup...");
+    const { exec } = await import('child_process');
+    
+    exec('cd /app && node db-setup.js', (error, stdout, stderr) => {
+      if (error) {
+        console.error("Setup error:", error);
+        return res.json({ 
+          success: false, 
+          error: error.message,
+          stderr: stderr 
+        });
+      }
+      console.log("Setup output:", stdout);
+      res.json({ 
+        success: true, 
+        message: "Database tables created successfully",
+        output: stdout.substring(0, 500) // First 500 chars
+      });
+    });
+  } catch (err) {
+    console.error("Route error:", err);
+    res.json({ success: false, error: err.message });
+  }
+});
+
 // Performance Demo Endpoint
 app.get("/api/performance", (req, res) => {
   const start = Date.now();
