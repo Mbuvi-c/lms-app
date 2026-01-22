@@ -68,7 +68,10 @@ const sequelize = new Sequelize(
     timezone: "+00:00",
     dialectOptions: {
       decimalNumbers: true,
-      ssl: process.env.NODE_ENV === "production" ? { require: true } : false
+      ssl: process.env.NODE_ENV === "production" ? { 
+        require: true,
+        rejectUnauthorized: false
+      } : false
     },
   }
 );
