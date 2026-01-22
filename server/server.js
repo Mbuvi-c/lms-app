@@ -87,6 +87,91 @@ app.get("/setup-db", async (req, res) => {
   }
 });
 
+// ... your existing /setup-db route ends here ...
+
+// Add this route here - DIRECT TABLE CREATION
+app.get("/create-tables-direct", async (req, res) => {
+  try {
+    console.log("Creating tables directly...");
+    
+    // Import mysql2 and bcryptjs
+    const mysql = (await import("mysql2/promise")).default;
+    const bcrypt = (await import("bcryptjs")).default;
+    
+    // Get database config from your DATABASE_URL
+    const dbUrl = process.env.DATABASE_URL;
+    console.log("Using DATABASE_URL:", dbUrl ? "Present" : "Missing");
+    
+    if (!dbUrl) {
+      return res.json({ success: false, error: "DATABASE_URL not found" });
+    }
+    
+    // Parse the DATABASE_URL
+    const url = new URL(dbUrl);
+    const config = {
+      host: url.hostname,
+      user: url.username,
+      password: url.password,
+      database: url.pathname.substring(1),
+      port: url.port || 3306,
+      multipleStatements: true
+    };
+    
+    console.log("Connecting to:", config.host, "database:", config.database);
+    
+    // Create connection
+    const conn = await mysql.createConnection(config);
+    
+    // Create users table only (for now)
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        role ENUM('student', 'instructor', 'admin') NOT NULL,
+        status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
+        first_name VARCHAR(100),
+        last_name VARCHAR(100),
+        name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    
+    console.log("✅ Users table created");
+    
+    // Insert admin user
+    const saltRounds = 12;
+    const defaultPassword = await bcrypt.hash("Admin@2026", saltRounds);
+    
+    await conn.query(
+      `INSERT IGNORE INTO users (email, password, role, status, first_name, last_name, name) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['admin@jkuat.ac.ke', defaultPassword, 'admin', 'active', 'System', 'Admin', 'System Admin']
+    );
+    
+    console.log("✅ Admin user created");
+    
+    await conn.end();
+    
+    res.json({ 
+      success: true, 
+      message: "Users table created and admin user added",
+      login: "admin@jkuat.ac.ke / Admin@2026"
+    });
+    
+  } catch (err) {
+    console.error("Direct table creation error:", err);
+    res.json({ 
+      success: false, 
+      error: err.message,
+      code: err.code,
+      sqlState: err.sqlState
+    });
+  }
+});
+
+
 // Performance Demo Endpoint
 app.get("/api/performance", (req, res) => {
   const start = Date.now();
