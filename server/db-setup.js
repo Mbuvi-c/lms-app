@@ -1,9 +1,15 @@
 #!/usr/bin/env node
+
 import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+
+console.log("=== DB SETUP DEBUG ===");
+console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
+console.log("DATABASE_URL length:", process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0);
+console.log("NODE_ENV:", process.env.NODE_ENV);
 
 // Configure environment
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
