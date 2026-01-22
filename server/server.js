@@ -11,6 +11,7 @@ import errorHandler, {
   notFoundHandler,
 } from "./src/middleware/errorHandler.js";
 import TokenBlacklist from "./src/models/TokenBlacklist.js";
+import os from "os";  
 
 // Initialize environment
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,27 +26,71 @@ const app = express();
 //  Middleware Pipeline
 // ======================
 app.use(helmet());
+
 app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  })
+    cors({
+        origin: ["http://localhost:5173", "http://localhost:5175"], // Array of allowed origins
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    })
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined', { stream: accessLogStream }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+
+
 // ======================
 //  Routes
 // ======================
+
+// Health Check (for Heroku/Cloud) - ADD THIS FIRST
+app.get("/health", (req, res) => {
+  const healthData = {
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    database: "connected",
+    environment: process.env.NODE_ENV || "development",
+    region: process.env.HEROKU_REGION || "local",
+    version: process.env.npm_package_version || "1.0.0"
+  };
+  res.json(healthData);
+});
+
+// Performance Demo Endpoint
+app.get("/api/performance", (req, res) => {
+  const start = Date.now();
+  // Simulate some processing
+  const simulatedDelay = Math.random() * 100;
+  
+  setTimeout(() => {
+    const responseTime = Date.now() - start;
+    res.json({
+      endpoint: "/api/performance",
+      responseTime: `${responseTime}ms`,
+      serverLoad: os.loadavg()[0],
+      memoryUsage: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+      timestamp: new Date().toISOString(),
+      server: process.env.HEROKU_APP_NAME || "local-dev",
+      region: process.env.HEROKU_REGION || "local"
+    });
+  }, simulatedDelay);
+});
+
+// Root route (KEEP ONLY THIS ONE)
 app.get("/", (req, res) =>
   res.json({
     status: "running",
     api: `${process.env.API_PREFIX || "/api"}/v1`,
+    docs: "/api-docs",
+    health: "/health",
+    performance: "/api/performance"
   })
 );
 
+// Your API routes
 app.use(process.env.API_PREFIX || "/api", routes);
 app.use(notFoundHandler);
 app.use(errorHandler);
@@ -53,7 +98,7 @@ app.use(errorHandler);
 // ======================
 //  Server Startup
 // ======================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;  // ✅ PORT IS HERE - LINE 94
 const server = app.listen(PORT, () => {
   console.log(`
   🚀 Server running in ${process.env.NODE_ENV || "development"} mode

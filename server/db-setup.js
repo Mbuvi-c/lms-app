@@ -9,20 +9,48 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-// Database configuration
-const config = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT || 3306,
-};
+// HEROKU COMPATIBLE DATABASE CONFIG
+function getDbConfig() {
+  // For Heroku (production)
+  if (process.env.JAWSDB_URL) {
+    // Parse the JAWSDB_URL
+    const url = new URL(process.env.JAWSDB_URL);
+    return {
+      host: url.hostname,
+      user: url.username,
+      password: url.password,
+      database: url.pathname.substring(1), // Remove leading slash
+      port: url.port || 3306,
+      multipleStatements: true
+    };
+  }
+  
+  // For local development
+  return {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'lms_db',
+    port: process.env.DB_PORT || 3306,
+    multipleStatements: true
+  };
+}
+
+const config = getDbConfig();
+console.log(`📊 Database config: ${process.env.JAWSDB_URL ? 'Heroku JawsDB' : 'Local MySQL'}`);
 
 // Unified SQL statements
 const SQL = [
-  `CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
-  `USE ${process.env.DB_NAME}`,
+  // If not using JAWSDB_URL (local), create database
+  ...(process.env.JAWSDB_URL ? [] : [
+    `CREATE DATABASE IF NOT EXISTS \`${config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
+    `USE \`${config.database}\``
+  ]),
+  
+  // If using JAWSDB_URL, just use the database (already exists)
+  ...(process.env.JAWSDB_URL ? [`USE \`${config.database}\``] : []),
 
-  // 1. Users table (Corrected with status, first/last names)
+  // 1. Users table
   `CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -53,7 +81,7 @@ const SQL = [
     FULLTEXT idx_search (title, description)
   )`,
 
-  // 3. Enrollments table (Corrected with role)
+  // 3. Enrollments table
   `CREATE TABLE IF NOT EXISTS enrollments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -67,7 +95,7 @@ const SQL = [
     INDEX idx_course (course_id)
   )`,
 
-  // 4. Posts table (Corrected with default title)
+  // 4. Posts table
   `CREATE TABLE IF NOT EXISTS posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     course_id INT NOT NULL,
@@ -126,34 +154,60 @@ const SQL = [
 async function setupDatabase() {
   let conn;
   try {
-    conn = await mysql.createConnection(config);
-    console.log("🔌 Connected to MySQL server");
+    // Connect with database name included (for JawsDB)
+    conn = await mysql.createConnection({
+      host: config.host,
+      user: config.user,
+      password: config.password,
+      database: config.database,
+      port: config.port,
+      multipleStatements: true
+    });
+    
+    console.log(`🔌 Connected to MySQL: ${config.host}`);
+    console.log(`📁 Database: ${config.database}`);
 
+    // Execute SQL statements
     for (const sql of SQL) {
-      await conn.query(sql);
-      console.log(`✓ Executed table setup step...`);
+      try {
+        await conn.query(sql);
+        console.log(`✓ Executed: ${sql.substring(0, 60)}...`);
+      } catch (err) {
+        // Ignore "database already exists" errors for Heroku
+        if (!err.message.includes('database exists') && !err.message.includes('already exists')) {
+          console.error(`❌ SQL Error:`, err.message);
+          throw err;
+        }
+      }
     }
 
     // --- SEEDING LOGIC ---
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
-    const defaultPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || "Admin@2026", saltRounds);
+    const defaultPassword = await bcrypt.hash(
+      process.env.ADMIN_PASSWORD || "Admin@2026", 
+      saltRounds
+    );
 
     // Seed Kenyan Users
+    console.log("🌱 Seeding Users...");
     const users = [
       ['admin@jkuat.ac.ke', defaultPassword, 'admin', 'active', 'Otieno', 'Manyora', 'Otieno Manyora'],
       ['registrar@strathmore.edu', defaultPassword, 'admin', 'active', 'Catherine', 'Mutua', 'Catherine Mutua'],
       ['dr.mwenesi@ku.ac.ke', defaultPassword, 'instructor', 'active', 'Faith', 'Mwenesi', 'Dr. Faith Mwenesi'],
       ['prof.kamau@jkuat.ac.ke', defaultPassword, 'instructor', 'active', 'David', 'Kamau', 'Prof. David Kamau'],
       ['kwame.njoroge@student.com', defaultPassword, 'student', 'active', 'Kwame', 'Njoroge', 'Kwame Njoroge'],
-      ['amani.cherono@student.com', defaultPassword, 'student', 'active', 'Amani', 'Cherono', 'Amani Cherono']
+      ['kelvin.jace@student.com', defaultPassword, 'student', 'active', 'Kelvin', 'Jace', 'Kelvin Jace']
     ];
 
-    console.log("🌱 Seeding Users...");
     for (const user of users) {
-      await conn.query(
-        `INSERT IGNORE INTO users (email, password, role, status, first_name, last_name, name) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        user
-      );
+      try {
+        await conn.query(
+          `INSERT IGNORE INTO users (email, password, role, status, first_name, last_name, name) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          user
+        );
+      } catch (err) {
+        console.log(`⚠️ User already exists: ${user[0]}`);
+      }
     }
 
     // Seed Kenyan Courses
@@ -164,19 +218,37 @@ async function setupDatabase() {
       ['Kenyan Law 101', 'Constitution of Kenya 2010 overview.', 'Elective', 1],
       ['Mobile Money Systems', 'Evolution of M-Pesa.', 'Major-Specific', 4]
     ];
+    
     for (const c of courses) {
-      await conn.query(`INSERT IGNORE INTO courses (title, description, course_type, created_by) VALUES (?, ?, ?, ?)`, c);
+      try {
+        await conn.query(
+          `INSERT IGNORE INTO courses (title, description, course_type, created_by) VALUES (?, ?, ?, ?)`,
+          c
+        );
+      } catch (err) {
+        console.log(`⚠️ Course already exists: ${c[0]}`);
+      }
     }
 
-    console.log("✅ Database setup and Kenyan seed completed successfully");
-    console.log(`Admin login: admin@jkuat.ac.ke / ${process.env.ADMIN_PASSWORD || "Admin@2026"}`);
+    console.log("✅ Database setup completed successfully!");
+    console.log("==========================================");
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Database: ${process.env.JAWSDB_URL ? 'Heroku JawsDB' : 'Local MySQL'}`);
+    console.log(`👤 Admin login: admin@jkuat.ac.ke / ${process.env.ADMIN_PASSWORD || "Admin@2026"}`);
+    console.log(`📊 Database URL: ${process.env.JAWSDB_URL ? 'Using JAWSDB_URL' : config.host}`);
+    console.log("==========================================");
 
   } catch (err) {
-    console.error("❌ Database setup failed:", err);
+    console.error("❌ Database setup failed:", err.message);
+    console.error("Full error:", err);
     process.exit(1);
   } finally {
-    if (conn) await conn.end();
+    if (conn) {
+      await conn.end();
+      console.log("🔌 Database connection closed");
+    }
   }
 }
 
+// Run setup
 setupDatabase();

@@ -4,7 +4,9 @@ import courseRoutes from './courseRoutes.js';
 import postRoutes from './postRoutes.js';
 import enrollmentRoutes from './enrollmentRoutes.js';
 import adminRoutes from './adminRoutes.js';
+import retryDemoRoutes from './retryDemo.js';
 import { notFoundHandler } from '../middleware/errorHandler.js';
+import faultToleranceDemo from './faultToleranceDemo.js';
 
 const router = Router();
 
@@ -13,6 +15,8 @@ router.use('/courses', courseRoutes);
 router.use('/posts', postRoutes);
 router.use('/enroll', enrollmentRoutes);
 router.use('/admin', adminRoutes);
+router.use('/retry-demo', retryDemoRoutes);
+router.use('/fault-tolerance', faultToleranceDemo);
 
 // 404 handler for undefined routes
 router.use(notFoundHandler);

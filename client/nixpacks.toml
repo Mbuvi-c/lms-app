@@ -1,0 +1,11 @@
+[phases.setup]
+cmds = ["echo 'Setting up client'"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run preview"

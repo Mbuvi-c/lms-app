@@ -1,0 +1,11 @@
+[phases.setup]
+cmds = ["echo 'Setup phase'"]
+
+[phases.install]
+cmds = ["echo 'Install phase'"]
+
+[phases.build]
+cmds = ["echo 'Build phase'"]
+
+[start]
+cmd = "echo 'Please specify service: client or server'"
