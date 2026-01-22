@@ -4,17 +4,31 @@ import mysql from "mysql2/promise";
 
 dotenv.config();
 
-// Helper function to parse DATABASE_URL
+// === ADD THESE DEBUG LINES ===
+console.log("=== DATABASE_URL DEBUG ===");
+console.log("Full DATABASE_URL:", process.env.DATABASE_URL);
+if (process.env.DATABASE_URL) {
+  console.log("URL parsed:", new URL(process.env.DATABASE_URL));
+} else {
+  console.log("DATABASE_URL not set, using local DB config");
+}
+// === END DEBUG LINES ===
+
+
 function getDbConfigFromUrl() {
-  if (process.env.DATABASE_URL) {
-    const url = new URL(process.env.DATABASE_URL);
-    return {
-      database: url.pathname.substring(1),
-      username: url.username,
-      password: url.password,
-      host: url.hostname,
-      port: url.port || 3306
-    };
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL !== 'undefined') {
+    try {
+      const url = new URL(process.env.DATABASE_URL);
+      return {
+        database: url.pathname.substring(1),
+        username: url.username,
+        password: url.password,
+        host: url.hostname,
+        port: url.port || 3306
+      };
+    } catch (err) {
+      console.error("Error parsing DATABASE_URL:", err.message);
+    }
   }
   
   // Fallback to individual env vars for local development
