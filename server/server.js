@@ -29,7 +29,7 @@ app.use(helmet());
 
 app.use(
     cors({
-        origin: ["http://localhost:5173", "http://localhost:5175"], // Array of allowed origins
+        origin: ["http://localhost:5173", "http://localhost:5175" , "https://diligent-trust-production.up.railway.app" ], // Array of allowed origins
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     })
 );
@@ -44,7 +44,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 //  Routes
 // ======================
 
-// Health Check (for Heroku/Cloud) - ADD THIS FIRST
+// Health Check (for Heroku/Cloud) - 
 app.get("/health", (req, res) => {
   const healthData = {
     status: "healthy",
@@ -98,7 +98,16 @@ app.use(errorHandler);
 // ======================
 //  Server Startup
 // ======================
-const PORT = process.env.PORT || 3000;  // ✅ PORT IS HERE - LINE 94
+const PORT = process.env.PORT || 3000;
+
+// DEBUG LOGS - ADD THESE LINES
+console.log("🚀 Server starting...");
+console.log("🌍 NODE_ENV:", process.env.NODE_ENV);
+console.log("🔗 DATABASE_URL exists:", !!process.env.DATABASE_URL);
+console.log("🚪 PORT:", PORT);
+console.log("📁 __dirname:", __dirname);
+// END DEBUG LOGS
+
 const server = app.listen(PORT, () => {
   console.log(`
   🚀 Server running in ${process.env.NODE_ENV || "development"} mode
