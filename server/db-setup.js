@@ -9,12 +9,11 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-// HEROKU COMPATIBLE DATABASE CONFIG
+//RAILWAY CLOUD DATABASE SETUP
 function getDbConfig() {
-  // For Heroku (production)
-  if (process.env.JAWSDB_URL) {
-    // Parse the JAWSDB_URL
-    const url = new URL(process.env.JAWSDB_URL);
+  // For Railway (production) - primary database connection
+  if (process.env.DATABASE_URL) {
+    const url = new URL(process.env.DATABASE_URL);
     return {
       host: url.hostname,
       user: url.username,
@@ -24,7 +23,7 @@ function getDbConfig() {
       multipleStatements: true
     };
   }
-  
+
   // For local development
   return {
     host: process.env.DB_HOST || 'localhost',
@@ -37,18 +36,18 @@ function getDbConfig() {
 }
 
 const config = getDbConfig();
-console.log(`📊 Database config: ${process.env.JAWSDB_URL ? 'Heroku JawsDB' : 'Local MySQL'}`);
+console.log(`📊 Database config: ${process.env.DATABASE_URL ? 'Railway MySQL' : 'Local MySQL'}`);
 
 // Unified SQL statements
 const SQL = [
-  // If not using JAWSDB_URL (local), create database
-  ...(process.env.JAWSDB_URL ? [] : [
-    `CREATE DATABASE IF NOT EXISTS \`${config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
-    `USE \`${config.database}\``
-  ]),
+
+// If using Railway (DATABASE_URL), database already exists, just use it
+...(process.env.DATABASE_URL ? [`USE \`${config.database}\``] : [
+  `CREATE DATABASE IF NOT EXISTS \`${config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
+  `USE \`${config.database}\``
+]),
   
-  // If using JAWSDB_URL, just use the database (already exists)
-  ...(process.env.JAWSDB_URL ? [`USE \`${config.database}\``] : []),
+
 
   // 1. Users table
   `CREATE TABLE IF NOT EXISTS users (
@@ -233,9 +232,9 @@ async function setupDatabase() {
     console.log("✅ Database setup completed successfully!");
     console.log("==========================================");
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔗 Database: ${process.env.JAWSDB_URL ? 'Heroku JawsDB' : 'Local MySQL'}`);
+    console.log(`🔗 Database: ${process.env.DATABASE_URL ? 'Railway MySQL' : 'Local MySQL'}`);
     console.log(`👤 Admin login: admin@jkuat.ac.ke / ${process.env.ADMIN_PASSWORD || "Admin@2026"}`);
-    console.log(`📊 Database URL: ${process.env.JAWSDB_URL ? 'Using JAWSDB_URL' : config.host}`);
+    console.log(`📊 Database URL: ${process.env.DATABASE_URL ? 'Using DATABASE_URL' : config.host}`);
     console.log("==========================================");
 
   } catch (err) {
