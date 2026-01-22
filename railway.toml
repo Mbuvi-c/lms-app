@@ -13,7 +13,7 @@ PORT = "3000"
 NODE_ENV = "production"
 
 [[services]]
-name = "client"
+name = "client" 
 root = "./client"
 start = "npm run preview"
 
