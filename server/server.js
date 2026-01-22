@@ -87,6 +87,63 @@ app.get("/setup-db", async (req, res) => {
   }
 });
 
+// SIMPLE TABLE CREATION ROUTE
+app.get("/fix-tables", async (req, res) => {
+  try {
+    console.log("=== FIXING TABLES ===");
+    
+    // Import mysql2
+    const mysql = (await import("mysql2/promise")).default;
+    
+    // Connect using the exact details from your logs
+    const connection = await mysql.createConnection({
+      host: 'mysql.railway.internal',
+      user: 'root',
+      password: 'pTTNArdYwVCxfNgGzxSZKXZzwpCrxFiq',
+      database: 'railway',
+      port: 3306
+    });
+    
+    console.log("✅ Connected to MySQL");
+    
+    // Create ONLY the users table (simplified version)
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'user'
+      )
+    `);
+    
+    console.log("✅ Users table created or already exists");
+    
+    // Insert admin user with PLAIN password for now (we'll hash later)
+    await connection.query(
+      `INSERT IGNORE INTO users (email, password, role) VALUES (?, ?, ?)`,
+      ['admin@jkuat.ac.ke', 'Admin@2026', 'admin']
+    );
+    
+    console.log("✅ Admin user added");
+    
+    await connection.end();
+    
+    res.json({
+      success: true,
+      message: "Users table created! Try logging in now.",
+      login: "admin@jkuat.ac.ke / Admin@2026"
+    });
+    
+  } catch (error) {
+    console.error("❌ Fix tables error:", error.message);
+    res.json({
+      success: false,
+      error: error.message,
+      code: error.code
+    });
+  }
+});
+
 // ... your existing /setup-db route ends here ...
 
 // Add this route here - DIRECT TABLE CREATION
@@ -221,10 +278,11 @@ console.log("🚪 PORT:", PORT);
 console.log("📁 __dirname:", __dirname);
 // END DEBUG LOGS
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`
   🚀 Server running in ${process.env.NODE_ENV || "development"} mode
-  🔗 http://localhost:${PORT}
+  🔗  http://0.0.0.0:${PORT}
+  🔗 Public URL: https://ims-app-production-a4a8.up.railway.app
   ⏱️ ${new Date().toLocaleString()}
   `);
 
